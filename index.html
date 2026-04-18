@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Numerología de Nombres</title>
+
+<!-- PWA Meta Tags -->
+<meta name="description" content="Calcula el número vibracional de cualquier nombre completo">
+<meta name="theme-color" content="#c2703a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Numerología">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #faf6f1;
+    --surface: #f4ede3;
+    --border:  #e2d5c3;
+    --accent:  #c2703a;
+    --accent2: #a85a28;
+    --text:    #2e2118;
+    --muted:   #9a8070;
+    --tag-bg:  #ede3d8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    /* Safe area for notch phones */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+
+  /* Install banner */
+  #installBanner {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(46,33,24,0.25);
+    z-index: 999;
+    max-width: calc(100vw - 40px);
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  #installBanner.hidden { display: none !important; }
+
+  .install-text { flex: 1; line-height: 1.4; }
+  .install-text strong { display: block; font-weight: 500; margin-bottom: 2px; }
+  .install-text span { color: rgba(255,255,255,0.65); font-size: 0.78rem; }
+
+  .btn-install {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-dismiss {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  /* Header */
+  .header { margin-bottom: 48px; }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .subtitle { font-size: 0.9rem; color: var(--muted); }
+
+  .rule {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* Reference table */
+  .table-wrap { margin-bottom: 40px; }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .letter-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 3px;
+  }
+
+  .letter-cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .lc-num { font-size: 0.6rem; font-weight: 500; color: var(--accent); line-height: 1; }
+  .lc-letter { font-family: 'DM Serif Display', serif; font-size: 0.85rem; color: var(--text); line-height: 1; }
+
+  /* Input */
+  input[type="text"] {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 10px;
+  }
+
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--border); font-style: italic; font-size: 1rem; }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  .btn {
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    border-radius: 8px;
+    padding: 12px 20px;
+    transition: all 0.18s;
+    border: none;
+  }
+
+  .btn-calc { background: var(--accent); color: #fff; flex: 1; }
+  .btn-calc:hover { background: var(--accent2); }
+  .btn-clear { background: var(--surface); color: var(--muted); border: 1.5px solid var(--border); }
+  .btn-clear:hover { background: var(--border); color: var(--text); }
+
+  .error-msg { font-size: 0.82rem; color: #c04040; margin-top: 8px; }
+
+  /* Results */
+  #results { display: none; animation: fadeUp 0.4s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Name block */
+  .name-block { padding: 20px 0; border-bottom: 1px solid var(--border); }
+
+  .name-block-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 12px;
+    text-transform: capitalize;
+  }
+
+  .letters-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+
+  .letter-tag {
+    background: var(--tag-bg);
+    border-radius: 4px;
+    padding: 5px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 28px;
+  }
+
+  .lt-char { font-family: 'DM Serif Display', serif; font-size: 0.95rem; color: var(--text); line-height: 1; }
+  .lt-val { font-size: 0.6rem; font-weight: 500; color: var(--accent); line-height: 1; }
+
+  .name-sum-line { font-size: 0.82rem; color: var(--muted); }
+  .name-sum-line strong { color: var(--accent); font-weight: 500; }
+
+  /* Group block */
+  .group-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .group-name { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--text); }
+  .group-val { font-size: 0.85rem; color: var(--muted); }
+  .group-val strong { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--accent); font-weight: 400; margin-left: 6px; }
+
+  /* Step row */
+  .step-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .step-row strong { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--accent); font-weight: 400; }
+
+  /* Final */
+  .final-box {
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 28px 32px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+  }
+
+  .final-number { font-family: 'DM Serif Display', serif; font-size: 5rem; color: var(--accent); line-height: 1; flex-shrink: 0; }
+
+  .final-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .final-path { font-size: 0.9rem; color: var(--muted); }
+  .final-path span { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- Install Banner -->
+<div id="installBanner" class="hidden">
+  <div class="install-text">
+    <strong>Instalar app</strong>
+    <span>Funciona sin internet</span>
+  </div>
+  <button class="btn-install" id="btnInstall">Instalar</button>
+  <button class="btn-dismiss" id="btnDismiss">✕</button>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>Numerología<br>de <em>Nombres</em></h1>
+    <p class="subtitle">Calcula el número vibracional de cualquier nombre completo</p>
+  </div>
+
+  <div class="table-wrap">
+    <div class="section-label">Tabla de letras</div>
+    <div class="letter-grid" id="letterGrid"></div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="input-section">
+    <input type="text" id="nameInput"
+      placeholder="Juan José Uparela Sosa"
+      autocomplete="off" spellcheck="false">
+    <div class="btn-row">
+      <button class="btn btn-calc" onclick="calculate()">Calcular</button>
+      <button class="btn btn-clear" onclick="clearAll()">Limpiar</button>
+    </div>
+    <div id="errorMsg" class="error-msg"></div>
+  </div>
+
+  <div id="results">
+    <div class="rule"></div>
+    <div class="section-label">Desglose por palabra</div>
+    <div id="nameBlocks"></div>
+    <div id="groupBlocks"></div>
+    <div id="stepsSection"></div>
+    <div id="finalBox"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── Service Worker ──────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registrado:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+
+  // ── Install Banner ──────────────────────────────────────────────
+  let deferredPrompt;
+  const banner = document.getElementById('installBanner');
+  const btnInstall = document.getElementById('btnInstall');
+  const btnDismiss = document.getElementById('btnDismiss');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    banner.classList.remove('hidden');
+    banner.style.display = 'flex';
+  });
+
+  btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    banner.classList.add('hidden');
+  });
+
+  btnDismiss.addEventListener('click', () => {
+    banner.classList.add('hidden');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    banner.classList.add('hidden');
+    deferredPrompt = null;
+  });
+
+  // ── Numerología ─────────────────────────────────────────────────
+  const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+  const letterValue = {};
+  for (let i = 0; i < ALPHABET.length; i++) {
+    letterValue[ALPHABET[i]] = (i % 9) + 1;
+  }
+
+  (function buildGrid() {
+    const grid = document.getElementById('letterGrid');
+    for (let i = 0; i < ALPHABET.length; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'letter-cell';
+      cell.innerHTML = `<span class="lc-num">${(i % 9) + 1}</span><span class="lc-letter">${ALPHABET[i]}</span>`;
+      grid.appendChild(cell);
+    }
+  })();
+
+  function normalize(str) {
+    return str.toLowerCase()
+      .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e')
+      .replace(/[íìï]/g, 'i').replace(/[óòö]/g, 'o')
+      .replace(/[úùü]/g, 'u').replace(/ñ/g, 'n');
+  }
+
+  function reduceToSingle(n) {
+    const steps = [n];
+    while (n > 9) {
+      n = String(n).split('').reduce((a, d) => a + parseInt(d), 0);
+      steps.push(n);
+    }
+    return { final: n, steps };
+  }
+
+  function calculate() {
+    const raw = document.getElementById('nameInput').value.trim();
+    document.getElementById('errorMsg').textContent = '';
+    if (!raw) { document.getElementById('errorMsg').textContent = 'Por favor ingresa un nombre.'; return; }
+
+    const words = raw.split(/\s+/).filter(w => w.length > 0);
+    const normalized = words.map(w => normalize(w));
+
+    for (let w of normalized) {
+      for (let ch of w) {
+        if (!letterValue[ch]) {
+          document.getElementById('errorMsg').textContent = `El carácter "${ch}" no es válido.`;
+          return;
+        }
+      }
+    }
+
+    const wordData = normalized.map((word, idx) => {
+      const letters = word.split('');
+      const values = letters.map(l => letterValue[l]);
+      const rawSum = values.reduce((a, b) => a + b, 0);
+      const reduced = reduceToSingle(rawSum);
+      return { original: words[idx], letters, values, rawSum, reduced, singleDigit: reduced.final };
+    });
+
+    let groups = [];
+    if (words.length === 1) {
+      groups = [{ indices: [0] }];
+    } else if (words.length === 2) {
+      groups = [{ indices: [0] }, { indices: [1] }];
+    } else {
+      const half = Math.floor(words.length / 2);
+      groups = [
+        { indices: Array.from({ length: half }, (_, i) => i) },
+        { indices: Array.from({ length: words.length - half }, (_, i) => i + half) }
+      ];
+    }
+
+    const groupSums = groups.map(g => ({
+      ...g,
+      sumOfDigits: g.indices.reduce((a, i) => a + wordData[i].singleDigit, 0)
+    })).map(g => ({ ...g, reduced: reduceToSingle(g.sumOfDigits) }));
+
+    const totalRaw = groupSums.reduce((a, g) => a + g.reduced.final, 0);
+    const totalReduced = reduceToSingle(totalRaw);
+
+    renderResults(wordData, groupSums, totalReduced);
+  }
+
+  function renderResults(wordData, groupSums, totalReduced) {
+    const nb = document.getElementById('nameBlocks');
+    nb.innerHTML = '';
+    wordData.forEach(w => {
+      const div = document.createElement('div');
+      div.className = 'name-block';
+      const lettersHTML = w.letters.map((l, i) =>
+        `<div class="letter-tag"><span class="lt-char">${l}</span><span class="lt-val">${w.values[i]}</span></div>`
+      ).join('');
+      const steps = w.reduced.steps;
+      const reductionStr = steps.length > 1
+        ? ` → ${steps.slice(1).map((s, i, a) => i === a.length - 1 ? `<strong>${s}</strong>` : s).join(' → ')}`
+        : '';
+      div.innerHTML = `
+        <div class="name-block-title">${w.original}</div>
+        <div class="letters-row">${lettersHTML}</div>
+        <div class="name-sum-line">${w.values.join(' + ')} = <strong>${w.rawSum}</strong>${reductionStr}</div>
+      `;
+      nb.appendChild(div);
+    });
+
+    const gb = document.getElementById('groupBlocks');
+    gb.innerHTML = '';
+    if (groupSums.length > 1) {
+      const rule = document.createElement('div');
+      rule.className = 'rule'; rule.style.margin = '8px 0 0'; gb.appendChild(rule);
+      const lbl = document.createElement('div');
+      lbl.className = 'section-label'; lbl.style.marginTop = '20px'; lbl.textContent = 'Totales por grupo';
+      gb.appendChild(lbl);
+
+      groupSums.forEach(g => {
+        const div = document.createElement('div');
+        div.className = 'group-block';
+        const parts = g.indices.map(i => wordData[i].original).join(' + ');
+        const steps = g.reduced.steps;
+        const prefix = steps.length > 1 ? steps.slice(0, -1).join(' → ') + ' → ' : '';
+        div.innerHTML = `
+          <span class="group-name">${parts}</span>
+          <span class="group-val">${prefix}<strong>${g.reduced.final}</strong></span>
+        `;
+        gb.appendChild(div);
+      });
+    }
+
+    const ss = document.getElementById('stepsSection');
+    ss.innerHTML = '';
+    if (groupSums.length > 1) {
+      const lbl = document.createElement('div');
+      lbl.className = 'section-label'; lbl.style.marginTop = '20px'; lbl.textContent = 'Suma final';
+      ss.appendChild(lbl);
+      const row = document.createElement('div');
+      row.className = 'step-row';
+      const groupTotal = groupSums.map(g => g.reduced.final).join(' + ');
+      const totalStr = totalReduced.steps.join(' → ');
+      row.innerHTML = `<span>${groupTotal}</span><span><strong>${totalReduced.final}</strong>&nbsp; (${totalStr})</span>`;
+      ss.appendChild(row);
+    }
+
+    const fb = document.getElementById('finalBox');
+    const pathStr = totalReduced.steps.join(' → ');
+    fb.innerHTML = `
+      <div class="final-box">
+        <div class="final-number">${totalReduced.final}</div>
+        <div class="final-info">
+          <div class="final-label">Número vibracional</div>
+          <div class="final-path">${pathStr.split(' → ').map((s, i, a) => i === a.length - 1 ? `<span>${s}</span>` : s).join(' → ')}</div>
+        </div>
+      </div>
+    `;
+
+    const res = document.getElementById('results');
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function clearAll() {
+    document.getElementById('nameInput').value = '';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('errorMsg').textContent = '';
+  }
+
+  document.getElementById('nameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
